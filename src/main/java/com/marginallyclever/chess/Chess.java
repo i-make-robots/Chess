@@ -79,7 +79,7 @@ public class Chess {
         }
 
         // pawn special cases
-        if(selectedPiece instanceof Pawn pawn) {
+        if(selectedPiece instanceof Pawn) {
             // check for promotion
             if((dest.y==0 || dest.y==7)) {
                 System.out.println("Pawn promotion!");
@@ -89,6 +89,10 @@ public class Chess {
         board.setPiece(dest,selectedPiece);
 
         // king special case - in check?
+        if(kingIsDead()) {
+            System.out.println("Checkmate!");
+            System.exit(0);
+        }
         var otherTeam = Team.get(turn+1);
         if(isKingInCheck(otherTeam)) {
             if(isKingInCheckMate(otherTeam)) {
@@ -99,6 +103,10 @@ public class Chess {
             }
         }
         turn++;
+    }
+
+    private boolean kingIsDead() {
+        return removedPieces.stream().anyMatch(e->e instanceof King);
     }
 
     /**
