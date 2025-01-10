@@ -40,6 +40,10 @@ public abstract class Piece {
     }
 
     public String getName() {
+        return name;
+    }
+
+    public String getColorfulName() {
         return team.colorize(name);
     }
 
@@ -96,6 +100,10 @@ public abstract class Piece {
 
     public void setMoved() {
         hasMoved = true;
+    }
+
+    public boolean getMoved() {
+        return hasMoved;
     }
 }
 

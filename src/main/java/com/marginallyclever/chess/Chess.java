@@ -5,6 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Chess is a game of chess.  It fills a {@link Board} with {@link Piece}s and allows the user to play the game.
+ * The game will continue until the user quits, resigns, or checkmate.
+ */
 public class Chess {
     private final Scanner scanner = new Scanner(System.in);
     private final Board board = new Board();
@@ -15,14 +19,13 @@ public class Chess {
 
     public static void main(String[] args) {
         var game = new Chess();
+        game.reset();
         while(true) {
             game.nextTurn();
         }
     }
 
-    public Chess() {
-        reset();
-    }
+    public Chess() {}
 
     public void reset() {
         whiteScore=0;
@@ -66,24 +69,25 @@ public class Chess {
 
     public void makeMove(Piece selectedPiece, Point dest) {
         selectedPiece.setMoved();
-        System.out.println(selectedPiece.getName()+" to "+board.pointToName(dest));
+        System.out.println(selectedPiece.getColorfulName()+" to "+board.pointToName(dest));
         board.setPiece(selectedPiece.getPosition(),null);
+        Point oldPosition = selectedPiece.getPosition();
 
         if(board.getPiece(dest)!=null) {
-            var toRemove = board.getPiece(dest);
-            System.out.println("Captured "+toRemove.getName());
-            removedPieces.add(toRemove);
-            if(toRemove.getTeam()==Team.WHITE)
-                 whiteScore += toRemove.getValue();
-            else blackScore += toRemove.getValue();
+            capture(board.getPiece(dest));
         }
 
         // pawn special cases
-        if(selectedPiece instanceof Pawn) {
+        if(selectedPiece instanceof Pawn pawn) {
             // check for promotion
             if((dest.y==0 || dest.y==7)) {
                 System.out.println("Pawn promotion!");
                 selectedPiece = new Queen(selectedPiece.getTeam());
+            }
+            // pawn en passant
+            if(pawn.isEnPassant()) {
+                System.out.print("en passant ");
+                capture(pawn.getEnPassantPiece());
             }
         }
         board.setPiece(dest,selectedPiece);
@@ -102,7 +106,36 @@ public class Chess {
                 System.out.println("Check!");
             }
         }
+        if(selectedPiece instanceof King king) {
+            if(king.canCastle(board) && king.getAllPossibleMoves(board).getLast().equals(dest)) {
+                // Move the rook.  The king will be moved at the end of the turn.
+                if(dest.x==1) {
+                    var rook = (Rook)board.getPiece(new Point(0,dest.y));
+                    board.setPiece(new Point(2,dest.y),rook);
+                    board.setPiece(new Point(0,dest.y),null);
+                } else if(dest.x==6) {
+                    var rook = (Rook)board.getPiece(new Point(7,dest.y));
+                    board.setPiece(new Point(5,dest.y),rook);
+                    board.setPiece(new Point(7,dest.y),null);
+                }
+            }
+        }
+
+        // move the piece
+        board.addMove(selectedPiece,oldPosition,dest);
         turn++;
+    }
+
+    private void capture(Piece toRemove) {
+        System.out.println("Captured "+toRemove.getColorfulName());
+        // take it off the board
+        board.setPiece(toRemove.getPosition(),null);
+        // put it in the box
+        removedPieces.add(toRemove);
+        // add to score
+        if(toRemove.getTeam()==Team.WHITE)
+            whiteScore += toRemove.getValue();
+        else blackScore += toRemove.getValue();
     }
 
     private boolean kingIsDead() {
@@ -134,7 +167,7 @@ public class Chess {
                 board.setPiece(destination,oldPiece);
                 // if the king is not in check, then the king can escape checkmate
                 if(!inCheck) {
-                    System.out.println("King can escape: "+piece.getName()+" "+board.pointToName(oldPosition)+" to "+board.pointToName(destination));
+                    System.out.println("King can escape: "+piece.getColorfulName()+" "+board.pointToName(oldPosition)+" to "+board.pointToName(destination));
                     return false;
                 }
             }
@@ -237,5 +270,13 @@ public class Chess {
 
     public Board getBoard() {
         return board;
+    }
+
+    public int getBlackScore() {
+        return blackScore;
+    }
+
+    public int getWhiteScore() {
+        return whiteScore;
     }
 }

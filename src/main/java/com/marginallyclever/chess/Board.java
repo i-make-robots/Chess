@@ -4,6 +4,9 @@ import java.awt.*;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * Board contains the state of play for a game of chess and the sequence of moves that have been made.
+ */
 public class Board {
     public static final String ANSI_BACKGROUND_BLACK  = "\033[48:2:0:0:0m";
     public static final String ANSI_BACKGROUND_WHITE  = "\033[48:2:64:64:64m";
@@ -12,6 +15,20 @@ public class Board {
     public static final String ANSI_BACKGROUND_MOVE = "\033[48:2:0:128:0m";
 
     private final Piece[][] spaces = new Piece[8][8];
+    private final List<PieceMove> moves = new ArrayList<>();
+
+    /**
+     * remove all pieces from board.
+     */
+    public void clear() {
+        for(int y=0;y<8;y++) {
+            for(int x=0;x<8;x++) {
+                spaces[y][x] = null;
+            }
+        }
+    }
+
+    public record PieceMove(Piece piece, Point from, Point to) {}
 
     public Board() {}
 
@@ -28,6 +45,15 @@ public class Board {
         if(outOfBounds(p)) throw new IllegalArgumentException("Point out of bounds");
         spaces[p.y][p.x] = piece;
         if(piece!=null) piece.setPosition(p);
+    }
+
+    public void addMove(Piece p,Point from,Point to) {
+        moves.add(new PieceMove(p,from,to));
+    }
+
+    public PieceMove getLastMove() {
+        if(moves.isEmpty()) return null;
+        return moves.get(moves.size()-1);
     }
 
     public String getTile(int x, int y) {
