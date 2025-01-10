@@ -65,10 +65,10 @@ public class Chess {
         Piece selectedPiece = choosePiece();
         Point dest = chooseDestination(selectedPiece);
         makeMove(selectedPiece,dest);
+        turn++;
     }
 
     public void makeMove(Piece selectedPiece, Point dest) {
-        selectedPiece.setMoved();
         System.out.println(selectedPiece.getColorfulName()+" to "+board.pointToName(dest));
         board.setPiece(selectedPiece.getPosition(),null);
         Point oldPosition = selectedPiece.getPosition();
@@ -81,13 +81,30 @@ public class Chess {
         if(selectedPiece instanceof Pawn pawn) {
             // check for promotion
             if((dest.y==0 || dest.y==7)) {
-                System.out.println("Pawn promotion!");
+                System.out.println(selectedPiece.getColorfulName()+" promotion!");
                 selectedPiece = new Queen(selectedPiece.getTeam());
             }
             // pawn en passant
             if(pawn.isEnPassant()) {
                 System.out.print("en passant ");
                 capture(pawn.getEnPassantPiece());
+            }
+        }
+        // castling
+        if(selectedPiece instanceof King king) {
+            if(king.canCastle(board) && king.getAllPossibleMoves(board).getLast().equals(dest)) {
+                // Move the rook.  The king will be moved at the end of the turn.
+                if(dest.x==1) {
+                    System.out.println("castle queen side");
+                    var rook = (Rook)board.getPiece(new Point(0,dest.y));
+                    board.setPiece(new Point(2,dest.y),rook);
+                    board.setPiece(new Point(0,dest.y),null);
+                } else if(dest.x==6) {
+                    System.out.println("castle king side");
+                    var rook = (Rook)board.getPiece(new Point(7,dest.y));
+                    board.setPiece(new Point(5,dest.y),rook);
+                    board.setPiece(new Point(7,dest.y),null);
+                }
             }
         }
         board.setPiece(dest,selectedPiece);
@@ -101,29 +118,13 @@ public class Chess {
         if(isKingInCheck(otherTeam)) {
             if(isKingInCheckMate(otherTeam)) {
                 System.out.println("Checkmate!");
-                System.exit(0);
             } else {
                 System.out.println("Check!");
-            }
-        }
-        if(selectedPiece instanceof King king) {
-            if(king.canCastle(board) && king.getAllPossibleMoves(board).getLast().equals(dest)) {
-                // Move the rook.  The king will be moved at the end of the turn.
-                if(dest.x==1) {
-                    var rook = (Rook)board.getPiece(new Point(0,dest.y));
-                    board.setPiece(new Point(2,dest.y),rook);
-                    board.setPiece(new Point(0,dest.y),null);
-                } else if(dest.x==6) {
-                    var rook = (Rook)board.getPiece(new Point(7,dest.y));
-                    board.setPiece(new Point(5,dest.y),rook);
-                    board.setPiece(new Point(7,dest.y),null);
-                }
             }
         }
 
         // move the piece
         board.addMove(selectedPiece,oldPosition,dest);
-        turn++;
     }
 
     private void capture(Piece toRemove) {
@@ -133,9 +134,11 @@ public class Chess {
         // put it in the box
         removedPieces.add(toRemove);
         // add to score
-        if(toRemove.getTeam()==Team.WHITE)
+        if(toRemove.getTeam()==Team.BLACK)
             whiteScore += toRemove.getValue();
         else blackScore += toRemove.getValue();
+
+        if(toRemove instanceof King) reset();
     }
 
     private boolean kingIsDead() {

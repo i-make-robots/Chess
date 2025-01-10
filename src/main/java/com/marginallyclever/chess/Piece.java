@@ -91,7 +91,7 @@ public abstract class Piece {
         if(board.outOfBounds(p)) return false;
         if(board.isOccupied(p) && board.getPiece(p).getTeam() == team) return false;
         moves.add(p);
-        return true;
+        return !board.isOccupied(p);
     }
 
     public int getValue() {

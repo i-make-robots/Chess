@@ -10,6 +10,7 @@ public class ChessTest {
     public void testCheckmate() {
         // shortest game of chess
         Chess chess = new Chess();
+        chess.reset();
         var board = chess.getBoard();
         chess.makeMove(board.getPiece("g2"), board.nameToPoint("g4"));
         chess.makeMove(board.getPiece("e7"), board.nameToPoint("e5"));
@@ -19,9 +20,10 @@ public class ChessTest {
     }
 
     @Test
-    void testEnPassant() {
+    void testEnPassantAndScoring() {
         // put two pawns on an empty board
         Chess chess = new Chess();
+        chess.reset();
         Board board = chess.getBoard();
         Pawn blackPawn = new Pawn(Team.BLACK);
         Pawn whitePawn = new Pawn(Team.WHITE);
@@ -41,5 +43,35 @@ public class ChessTest {
         Assertions.assertNull(board.getPiece(new Point(3, 5)));
         Assertions.assertEquals(1, chess.getBlackScore());
         Assertions.assertEquals(0, chess.getWhiteScore());
+    }
+
+    @Test
+    void testPromotion() {
+        Chess chess = new Chess();
+        chess.reset();
+        Board board = chess.getBoard();
+        // put a pawn on the board
+        Pawn whitePawn = new Pawn(Team.WHITE);
+        board.setPiece(new Point(0, 6), whitePawn);
+        // move the pawn to the end of the board
+        chess.makeMove(whitePawn, new Point(0, 7));
+        // assert the pawn was promoted
+        Assertions.assertInstanceOf(Queen.class, board.getPiece(new Point(0, 7)));
+    }
+
+    @Test
+    void testCastling() {
+        Chess chess = new Chess();
+        chess.reset();
+        Board board = chess.getBoard();
+        // put a king and rook on the board
+        King king = (King)board.getPiece("e8");
+        Rook rook = (Rook)board.getPiece("h8");
+        board.setPiece(board.nameToPoint("f8"), null);
+        board.setPiece(board.nameToPoint("g8"), null);
+        // move the king two spaces to the right
+        chess.makeMove(king, board.nameToPoint("g8"));
+        // assert the rook was moved to the left of the king
+        Assertions.assertEquals(rook, board.getPiece(board.nameToPoint("f8")));
     }
 }

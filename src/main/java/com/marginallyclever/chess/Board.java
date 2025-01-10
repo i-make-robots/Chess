@@ -12,7 +12,8 @@ public class Board {
     public static final String ANSI_BACKGROUND_WHITE  = "\033[48:2:64:64:64m";
     public static final String ANSI_RESET = "\033[0m";
     public static final String EM_SPACE = "\u2003";
-    public static final String ANSI_BACKGROUND_MOVE = "\033[48:2:0:128:0m";
+    public static final String ANSI_BACKGROUND_BLACK_HI = "\033[48:2:0:64:0m";
+    public static final String ANSI_BACKGROUND_WHITE_HI = "\033[48:2:0:128:0m";
 
     private final Piece[][] spaces = new Piece[8][8];
     private final List<PieceMove> moves = new ArrayList<>();
@@ -48,6 +49,7 @@ public class Board {
     }
 
     public void addMove(Piece p,Point from,Point to) {
+        p.setMoved();
         moves.add(new PieceMove(p,from,to));
     }
 
@@ -58,6 +60,10 @@ public class Board {
 
     public String getTile(int x, int y) {
         return (x+y)%2 == 0 ? ANSI_BACKGROUND_BLACK : ANSI_BACKGROUND_WHITE;
+    }
+
+    public String getTileHighlight(int x, int y) {
+        return (x+y)%2 == 0 ? ANSI_BACKGROUND_BLACK_HI : ANSI_BACKGROUND_WHITE_HI;
     }
 
     public List<Piece> getTeamPieces(Team team) {
@@ -132,7 +138,7 @@ public class Board {
             System.out.print((char)('1'+7-y)+HS);
             for(int x=0;x<8;x++) {
                 var p = spaces[y][x];
-                System.out.print(inPointList(moves,x,y)?ANSI_BACKGROUND_MOVE:getTile(x,y));
+                System.out.print( inPointList(moves,x,y) ? getTileHighlight(x,y) : getTile(x,y) );
 
                 System.out.print(p == null
                         ? EM_SPACE
