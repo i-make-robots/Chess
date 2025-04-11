@@ -9,4 +9,4 @@ ChessPiece class.
 
 Does include en passant and castling.
 
-![test run of shortest game](Screenshot 2025-01-09 152759.png)
+![preview](Screenshot%202025-01-09%20152759.png)
